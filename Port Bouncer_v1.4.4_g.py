@@ -10,6 +10,7 @@ device_data = []
 layout = [[sg.Text("Enter device details: ")],
           [sg.Table(values=device_data, headings=["Hostname/IP", "Ports to Bounce"], max_col_width=40, key="-TABLE-")],
           [sg.Text("Hostname/IP: "), sg.InputText(key="-IP-")],
+          [sg.Text('Task Number'), sg.InputText(key='task_num')],
           [sg.Text("Ports: Seperate the ports by commas if you need to bounce multiple on one device. "), sg.InputText(key="-PORTS-")],
           [sg.Text("Username: "), sg.InputText(key="-USER-")],
           [sg.Text("Password: "), sg.InputText(key="-PASSWORD-", password_char="*")],
@@ -77,7 +78,7 @@ while True:
         if not values["-PASSWORD-"]:
             sg.popup("Password cannot be blank!")
             continue
-        device_data.append([values["-IP-"], values["-PORTS-"], values["-USER-"], values["-PASSWORD-"]])
+        device_data.append([values["-IP-"], values["-PORTS-"], values["-USER-"], values["-PASSWORD-"], values["task_num"]])
         window["-TABLE-"].update(values=device_data)
     if event == "Clear":
         device_data = []
@@ -87,10 +88,11 @@ while True:
         result_window = sg.Window("Result", [[sg.Multiline(result, size=(80, 20), key="-RESULT-")]])
         result_window.read()
         result_window.close()
-        teams_webhook_url = "url here"
+        teams_webhook_url = "add webhook url here"
         headers = {
         "Content-Type": "application/json"
         }
+        task_num = device_data[0][4]
         devices_message = ""
         for device in device_data:
             devices_message += "Device: " + device[0] + "," "\nPort: " + device[1] + "\n"
@@ -99,7 +101,7 @@ while True:
         "@context": "https://schema.org/extensions",
         "summary": "Script Completed",
         "themeColor": "0078D7",
-        "title": "Port bounce action completed.",
+        "title": "Port bounce action completed for " + task_num,
         "text": "I ran my job successfully on the following devices and ports:\n" + devices_message
         }
         response = requests.post(teams_webhook_url, headers=headers, json=data)
@@ -109,5 +111,4 @@ while True:
         else:
          sg.popup("Message successfully sent to Teams channel")
          continue
-
 window.close
